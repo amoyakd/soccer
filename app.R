@@ -93,7 +93,7 @@ server <- function(input, output) {
           arrange(desc(`Total Points`))
     tbl <- tbl[, c(3:18)]
     #print(tbl)
-  })
+  },options = list(orderClasses = TRUE, pageLength = 25))
   # <-----------  Component 'League' END ---------->
   
   
