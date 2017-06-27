@@ -184,7 +184,7 @@ server <- function(input, output) {
   
   #Render Data Table
   output$TP.dataTable <- renderDataTable({
-    tbl <- team_Summary %>% filter(league_id == input$TP.League) 
+    tbl <- team_Summary %>% filter(league_id == input$TP.League) %>% arrange(desc(`Win %`))
     tbl <- tbl[,c('Team', 'Wins', 'Losses','Win %','Total Matches')]
     tbl <- datatable(tbl) %>% 
             formatStyle(
