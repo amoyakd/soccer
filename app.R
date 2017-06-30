@@ -9,38 +9,52 @@ source('main.R')
 
 ui <- fluidPage(
   navbarPage("European Soccer",
-             theme = shinytheme("flatly"),
-             
+    theme = shinytheme("flatly"),
+    
     tabPanel("League Table",
-          fluidRow(
-              column(3,uiOutput("choose_league")),
-              column(3,uiOutput("choose_season"))
-          ),
-          dataTableOutput("tbl") 
+      fluidRow(
+        column(3,uiOutput("choose_league")),
+        column(3,uiOutput("choose_season"))
+      ),
+      dataTableOutput("tbl") 
     ),
     tabPanel("Team Points Comparison",
       fluidRow(
+        column(12, p("Select multiple teams to compare their performance(total points) across seasons"))
+      ),#End Row 1
+      fluidRow(
         column(3, uiOutput("choose_league2")),
         column(3, uiOutput("choose_team1"))
-        #column(6)
-      ),#End Row 1
+      ),#End Row 2
       fluidRow(
         column(12, plotOutput("plot1"))
         #column(12, dataTableOutput("table2"))
-      )#End Row 2
+      )#End Row 3
     ),#End Tab Panel
     tabPanel("Attribute Analysis",
+      fluidRow(
+        column(7,p("In this section we try to anayze the team attributes and 
+        see whether they can be used to predict team perfomance. 
+        You can plot one or more team attributes including team's season points 
+        and see how they vary across seasons.",br(),br(), "Unfortunately as the chart and 
+        correlation matrix below shows, Total season points (which can be a 
+        measure of a team's performance) are",strong("not strongly 
+        correlated to any team attribute variable")))
+      ),#End Row 1
       fluidRow(
         column(3, uiOutput("choose_league3")),
         column(3, uiOutput("choose_team2")),
         column(3, uiOutput("choose_attr1"))
-      ),#End Row 1
+      ), #End of ROw 2
       fluidRow(
         column(12, plotOutput("plot2"))
-      ), #End of ROw 3
+      ),#End of ROw 3
+      fluidRow(
+        column(12, h2("Correlation Matrix of Team Attributes and Season Points"))
+      ),
       fluidRow(
         column(10, offset = 2, iplotCorr_output("corrPlot"))
-      )
+      )#End of ROw 4
     ),#End Tab Panel 3
     tabPanel("Team Performance",
       fluidRow(
@@ -64,15 +78,15 @@ server <- function(input, output) {
   output$choose_league <- renderUI({
     selectInput("league", "Select League", choices = leagueNames)
   })
-
+  
   #Dropdown for season
   output$choose_season <- renderUI({
     selectInput("season", "Select Season", choices = as.list(seasons))
   })
-
+  
   output$tbl <- renderDataTable({
     tbl <- getleagueSeasonTable(team_season_details, input$league, input$season) %>% 
-                                  select(-c(country_id:team_api_id, team_short_name))
+      select(-c(country_id:team_api_id, team_short_name))
     tbl<- tbl %>% rename('Total Points' = total_season_points,
                          'Team' = team_long_name,
                          'Home Matches' = home_matches,
@@ -89,8 +103,8 @@ server <- function(input, output) {
                          'Total Wins' = total_wins,
                          'Total Losses' = total_loss,
                          'Total Draws' = total_draws
-                          ) %>%
-          arrange(desc(`Total Points`))
+    ) %>%
+      arrange(desc(`Total Points`))
     tbl <- tbl[, c(3:18)]
     #print(tbl)
   },options = list(orderClasses = TRUE, pageLength = 25))
@@ -115,11 +129,11 @@ server <- function(input, output) {
   output$plot1 <- renderPlot({
     teamAllSeasons <- getNTeamAllSeasons(team_season_details, input$team1)
     p <-  ggplot(teamAllSeasons, aes(season, total_season_points, group = team_long_name)) +
-          geom_line(aes(color = team_long_name) , size=1.0) +
-          geom_point(aes(color = team_long_name), size=4, shape=21, fill="white") + 
-          expand_limits(y=0) +
-          xlab("Season") + ylab("Points") + 
-          ggtitle("Total Points by Season")
+      geom_line(aes(color = team_long_name) , size=1.0) +
+      geom_point(aes(color = team_long_name), size=4, shape=21, fill="white") + 
+      expand_limits(y=0) +
+      xlab("Season") + ylab("Points") + 
+      ggtitle("Total Points by Season")
     print(p)
   })
   # output$table2 <- renderDataTable({
@@ -186,17 +200,18 @@ server <- function(input, output) {
   output$TP.dataTable <- renderDataTable({
     tbl <- team_Summary %>% filter(league_id == input$TP.League) %>% arrange(desc(`Win %`))
     tbl <- tbl[,c('Team', 'Wins', 'Losses','Win %','Total Matches')]
+    
     tbl <- datatable(tbl) %>% 
-            formatStyle(
-                c('Wins',
-                'Losses',
-                'Total Matches'),
-                background = styleColorBar(range(team_Summary$`Total Matches`),
-                'skyblue'),
-                backgroundSize = '75% 80%',
-                backgroundRepeat = 'no-repeat',
-                backgroundPosition = 'right'
-              )
+      formatStyle(
+        c('Wins',
+          'Losses',
+          'Total Matches'),
+        background = styleColorBar(range(team_Summary$`Total Matches`),
+                                   'skyblue'),
+        backgroundSize = '75% 80%',
+        backgroundRepeat = 'no-repeat',
+        backgroundPosition = 'right'
+      )
   })
   # <-----------  Component 'Team Performance' END ------>
 }
